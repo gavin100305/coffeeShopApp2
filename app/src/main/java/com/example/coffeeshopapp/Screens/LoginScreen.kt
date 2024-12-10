@@ -19,11 +19,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,16 +48,18 @@ import com.example.coffeeshopapp.Connections.Screen
 import com.example.coffeeshopapp.R
 import com.example.coffeeshopapp.ui.theme.buttonColor
 import com.example.coffeeshopapp.ui.theme.login
+import com.example.coffeeshopapp.viewModel.UserViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController,viewModel : UserViewModel) {
 
+    val authState = viewModel.authState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var errorMessage by remember {mutableStateOf("")}
-    var loading by remember {mutableStateOf(false)}
+    var loading = viewModel.loadingState.collectAsState()
+    var errorMessage = viewModel.errorMessage.collectAsState()
 
     Box(
         modifier = Modifier
@@ -174,7 +179,9 @@ fun LoginScreen(navController: NavController) {
                 ) {
 
                     Button(
-                        onClick = {  },
+                        onClick = {
+                            viewModel.loginUser(email,password)
+                        },
                         shape = RoundedCornerShape(15.dp),
                         modifier = Modifier
                             .height(60.dp)
@@ -226,6 +233,27 @@ fun LoginScreen(navController: NavController) {
                    }
 
                }
+            }
+        }
+    }
+    if(loading.value){
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFFEAE4D0)),
+            contentAlignment = Alignment.Center){
+
+            CircularProgressIndicator()
+
+        }
+    }
+    if(authState.value.isSuccess){
+        val user = authState.value.getOrNull()
+        user?.let {
+            navController.navigate(Screen.homeScreen.route)
+        }
+    }else {
+        val error = authState.value.exceptionOrNull()
+        errorMessage?.let {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter){
+                Text("Error: $it", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 16.dp))
             }
         }
     }

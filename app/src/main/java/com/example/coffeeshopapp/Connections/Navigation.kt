@@ -6,11 +6,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.coffeeshopapp.Screens.GetStartedScreen
+import com.example.coffeeshopapp.Screens.HomeScreen
 import com.example.coffeeshopapp.Screens.LoginScreen
 import com.example.coffeeshopapp.Screens.SignUpScreen
+import com.example.coffeeshopapp.viewModel.UserViewModel
 
 @Composable
-fun Navigation(navController : NavHostController){
+fun Navigation(navController : NavHostController,viewModel: UserViewModel){
 
     NavHost(navController = navController, startDestination = Screen.getStartedScreen.route){
 
@@ -20,10 +22,13 @@ fun Navigation(navController : NavHostController){
         }
 
         composable(route = Screen.loginScreen.route){
-            LoginScreen(navController)
+            LoginScreen(navController,viewModel)
         }
         composable(route = Screen.loginScreen.route){
-            SignUpScreen(navController)
+            SignUpScreen(navController,viewModel)
+        }
+        composable(route = Screen.homeScreen.route){
+            HomeScreen()
         }
 
 

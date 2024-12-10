@@ -52,6 +52,10 @@ dependencies {
 
     implementation(libs.firebase.analytics)
 
+    implementation (libs.firebase.auth.ktx)
+    implementation (libs.firebase.database.ktx)
+    implementation (libs.firebase.core)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

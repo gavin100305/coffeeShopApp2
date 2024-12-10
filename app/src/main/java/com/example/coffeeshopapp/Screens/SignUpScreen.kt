@@ -25,15 +25,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,28 +55,27 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coffeeshopapp.Connections.Screen
 import com.example.coffeeshopapp.R
 import com.example.coffeeshopapp.ui.theme.login
+import com.example.coffeeshopapp.viewModel.UserViewModel
 import java.util.Date
 import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(navController: NavController,viewModel: UserViewModel) {
+    val authState = viewModel.authState.collectAsState()
+    val errorMessage = viewModel.errorMessage.collectAsState()
+    val loading = viewModel.loadingState.collectAsState()
 
-    var email by remember {
-        mutableStateOf("")
-    }
+    var email by remember { mutableStateOf("") }
 
-    var password by remember {
-        mutableStateOf("")
-    }
-    var name by remember {
-        mutableStateOf("")
-    }
+    var password by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
 
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var showModal by remember { mutableStateOf(false) }
@@ -292,7 +295,9 @@ fun SignUpScreen(navController: NavController) {
                 ) {
 
                     Button(
-                        onClick = {  },
+                        onClick = {
+                            viewModel.registerUser(name,email,password,selectedDate!!)
+                        },
                         shape = RoundedCornerShape(15.dp),
                         modifier = Modifier
                             .height(60.dp)
@@ -347,6 +352,27 @@ fun SignUpScreen(navController: NavController) {
             }
         }
     }
+    if(loading.value){
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFFEAE4D0)),
+            contentAlignment = Alignment.Center){
+
+            CircularProgressIndicator()
+
+        }
+    }
+    if(authState.value.isSuccess){
+        val user = authState.value.getOrNull()
+        user?.let {
+            navController.navigate(Screen.homeScreen.route)
+        }
+    }else {
+        val error = authState.value.exceptionOrNull()
+        errorMessage?.let {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter){
+                Text("Error: $it", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 16.dp))
+            }
+        }
+    }
 }
 
 fun convertMillisToDate(millis: Long): String {
@@ -364,6 +390,10 @@ fun DatePickerModal(
 
     DatePickerDialog(
         onDismissRequest = { onDismiss() },
+        colors = DatePickerDefaults.colors(
+            containerColor = Color(0xFFEAE4D0),
+            titleContentColor = Color.Black
+        ),
         confirmButton = {
             Button(
                 onClick = {
